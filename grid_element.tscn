@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://ckx3sgh2u45kx"]
+
+[ext_resource type="Script" path="res://grid_element.gd" id="1_0iypx"]
+[ext_resource type="PackedScene" uid="uid://b8x07pprlk8qw" path="res://assets/square.glb" id="2_f3gn5"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_425ns"]
+size = Vector3(2, 1, 2)
+
+[node name="GridElement" type="Node3D"]
+script = ExtResource("1_0iypx")
+
+[node name="ElementMarker" type="Marker3D" parent="."]
+
+[node name="square" parent="ElementMarker" instance=ExtResource("2_f3gn5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
+
+[node name="SquareArea" type="Area3D" parent="ElementMarker"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
+
+[node name="SquareCollisionShape" type="CollisionShape3D" parent="ElementMarker/SquareArea"]
+shape = SubResource("BoxShape3D_425ns")
+
+[connection signal="mouse_entered" from="ElementMarker/SquareArea" to="." method="_on_square_area_mouse_entered"]
+[connection signal="mouse_exited" from="ElementMarker/SquareArea" to="." method="_on_square_area_mouse_exited"]

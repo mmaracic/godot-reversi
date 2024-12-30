@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://0j3dexbc52r8"]
+
+[ext_resource type="Script" path="res://grid.gd" id="1_am1yn"]
+[ext_resource type="PackedScene" uid="uid://ckx3sgh2u45kx" path="res://grid_element.tscn" id="2_mbdix"]
+
+[node name="Grid" type="Node3D"]
+script = ExtResource("1_am1yn")
+gridElement = ExtResource("2_mbdix")
