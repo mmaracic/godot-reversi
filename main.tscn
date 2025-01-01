@@ -1,10 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://bxr5yg3be2281"]
+[gd_scene load_steps=4 format=3 uid="uid://bxr5yg3be2281"]
 
-[ext_resource type="Script" path="res://node_3d.gd" id="1_d6215"]
+[ext_resource type="Script" path="res://main.gd" id="1_v0dpq"]
 [ext_resource type="PackedScene" uid="uid://0j3dexbc52r8" path="res://grid.tscn" id="2_fae3n"]
+[ext_resource type="PackedScene" uid="uid://dgfpim4cr13sx" path="res://ui.tscn" id="3_78ks1"]
 
 [node name="main" type="Node3D"]
-script = ExtResource("1_d6215")
+script = ExtResource("1_v0dpq")
 
 [node name="Grid" parent="." instance=ExtResource("2_fae3n")]
 
@@ -17,3 +18,5 @@ fov = 90.0
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="CameraPosition"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 directional_shadow_max_distance = 1.0
+
+[node name="UI" parent="." instance=ExtResource("3_78ks1")]
