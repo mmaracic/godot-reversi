@@ -10,7 +10,7 @@ script = ExtResource("1_v0dpq")
 [node name="Grid" parent="." instance=ExtResource("2_fae3n")]
 
 [node name="CameraPosition" type="Marker3D" parent="."]
-transform = Transform3D(-1, -8.74228e-08, -3.82137e-15, 0, -4.37114e-08, 1, -8.74228e-08, 1, 4.37114e-08, 0, 6, 0)
+transform = Transform3D(-1, -8.74228e-08, -3.82137e-15, 0, -4.37114e-08, 1, -8.74228e-08, 1, 4.37114e-08, 4, 6, 4)
 
 [node name="Camera" type="Camera3D" parent="CameraPosition"]
 fov = 90.0
@@ -20,3 +20,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 directional_shadow_max_distance = 1.0
 
 [node name="UI" parent="." instance=ExtResource("3_78ks1")]
+visible = false

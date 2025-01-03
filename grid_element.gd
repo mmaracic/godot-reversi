@@ -6,16 +6,17 @@ var targeted: bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	setPuck(Puck.White)
+	setPuck(Puck.None)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
 	
-func setPosition(position: Vector3) -> void:
-	var marker = get_node("ElementMarker")
-	marker.position = position
+func setPosition(newPosition: Vector3) -> void:
+	var marker:Marker3D = get_node("ElementMarker")
+	marker.position = newPosition
+	
 	
 func setPuck(type: Puck) -> void:
 	var whitePuck = get_node("ElementMarker/WhitePuck")

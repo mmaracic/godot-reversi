@@ -6,19 +6,19 @@
 [ext_resource type="PackedScene" uid="uid://8e6l4q6i5d0u" path="res://assets/puck_white.glb" id="4_reo21"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_425ns"]
-size = Vector3(2, 1, 2)
 
 [node name="GridElement" type="Node3D"]
 script = ExtResource("1_0iypx")
 
 [node name="ElementMarker" type="Marker3D" parent="."]
 
-[node name="square" parent="ElementMarker" instance=ExtResource("2_f3gn5")]
-
 [node name="SquareArea" type="Area3D" parent="ElementMarker"]
 
 [node name="SquareCollisionShape" type="CollisionShape3D" parent="ElementMarker/SquareArea"]
 shape = SubResource("BoxShape3D_425ns")
+
+[node name="square" parent="ElementMarker/SquareArea" instance=ExtResource("2_f3gn5")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 
 [node name="BlackPuck" parent="ElementMarker" instance=ExtResource("3_gp3qy")]
 transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
