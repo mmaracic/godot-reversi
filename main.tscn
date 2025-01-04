@@ -20,4 +20,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 directional_shadow_max_distance = 1.0
 
 [node name="UI" parent="." instance=ExtResource("3_78ks1")]
-visible = false
+
+[connection signal="move_done" from="Grid" to="." method="_on_grid_move_done"]
+[connection signal="move_done" from="Grid" to="UI" method="_on_grid_move_done"]
+[connection signal="start_game" from="UI" to="." method="_on_ui_start_game"]

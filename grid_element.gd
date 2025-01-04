@@ -1,12 +1,15 @@
+class_name GridElement
 extends Node3D
 
-enum Puck {White, Black, None}
+var Util = preload("util.gd")
+
+signal clicked
 
 var targeted: bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	setPuck(Puck.None)
+	_setPuck(Util.Puck.None)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -17,25 +20,46 @@ func setPosition(newPosition: Vector3) -> void:
 	var marker:Marker3D = get_node("ElementMarker")
 	marker.position = newPosition
 	
+func getPosition() -> Vector3:
+	var marker:Marker3D = get_node("ElementMarker")
+	return Vector3(marker.position)
 	
-func setPuck(type: Puck) -> void:
-	var whitePuck = get_node("ElementMarker/WhitePuck")
-	var blackPuck = get_node("ElementMarker/BlackPuck")
+	
+func _setPuck(type: Util.Puck) -> void:
+	var whitePuck:Node3D = get_node("ElementMarker/WhitePuck")
+	var blackPuck:Node3D = get_node("ElementMarker/BlackPuck")
 	match type:
-		Puck.White:
+		Util.Puck.White:
 			whitePuck.visible = true
 			blackPuck.visible = false
-		Puck.Black:
+		Util.Puck.Black:
 			whitePuck.visible = false
 			blackPuck.visible = true
-		Puck.None:
+		Util.Puck.None:
 			whitePuck.visible = false
 			blackPuck.visible = false
 
+func getPuck() -> Util.Puck:
+	var whitePuck:Node3D = get_node("ElementMarker/WhitePuck")
+	var blackPuck:Node3D = get_node("ElementMarker/BlackPuck")
+	if (whitePuck.visible):
+		return Util.Puck.White
+	elif (blackPuck.visible):
+		return Util.Puck.Black
+	else:
+		return Util.Puck.None
+
+func setPuckIfEmpty(puck: Util.Puck) -> bool:
+	if (getPuck() == Util.Puck.None):
+		_setPuck(puck)
+		return true
+	else:
+		return false
+	
+	
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed() and targeted:
-		var elementMarker: Marker3D = get_node("ElementMarker")
-		print("Clicked position: ", elementMarker.position)
+		clicked.emit()
 
 func _on_square_area_mouse_entered() -> void:
 	targeted = true
