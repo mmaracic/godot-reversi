@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://ckx3sgh2u45kx"]
 
 [ext_resource type="Script" path="res://grid_element.gd" id="1_0iypx"]
-[ext_resource type="PackedScene" uid="uid://b8x07pprlk8qw" path="res://assets/square.glb" id="2_f3gn5"]
-[ext_resource type="PackedScene" uid="uid://blg3mg3ppru6q" path="res://assets/puck_black.glb" id="3_gp3qy"]
-[ext_resource type="PackedScene" uid="uid://8e6l4q6i5d0u" path="res://assets/puck_white.glb" id="4_reo21"]
+[ext_resource type="PackedScene" uid="uid://ckd7bb8x30uon" path="res://assets/square.glb" id="2_f3gn5"]
+[ext_resource type="PackedScene" uid="uid://bi8o5k1k841df" path="res://assets/puck_black.glb" id="3_gp3qy"]
+[ext_resource type="PackedScene" uid="uid://iqs5aixlqv8e" path="res://assets/puck_white.glb" id="4_reo21"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_425ns"]
 

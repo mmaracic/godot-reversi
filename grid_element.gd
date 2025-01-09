@@ -16,13 +16,18 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	pass
 	
-func setPosition(newPosition: Vector3) -> void:
+func set3DPosition(newPosition: Vector3) -> void:
 	var marker:Marker3D = get_node("ElementMarker")
 	marker.position = newPosition
 	
-func getPosition() -> Vector3:
+func get3DPosition() -> Vector3:
 	var marker:Marker3D = get_node("ElementMarker")
 	return Vector3(marker.position)
+
+
+func getPosition() -> Util.Position:
+	var vectorPosition:Vector3 = get3DPosition()
+	return Util.Position.create(roundi(vectorPosition.z), roundi(vectorPosition.x))
 	
 	
 func _setPuck(type: Util.Puck) -> void:
@@ -50,11 +55,14 @@ func getPuck() -> Util.Puck:
 		return Util.Puck.None
 
 func setPuckIfEmpty(puck: Util.Puck) -> bool:
-	if (getPuck() == Util.Puck.None):
+	if (isEmpty()):
 		_setPuck(puck)
 		return true
 	else:
 		return false
+		
+func isEmpty() -> bool:
+	return getPuck() == Util.Puck.None 
 	
 	
 func _unhandled_input(event: InputEvent) -> void:

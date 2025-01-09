@@ -2,6 +2,7 @@ class_name AutomatedPlayer
 extends Object
 
 var Util = preload("util.gd")
+var dummyPosition = Util.ReturnPosition.create(0,0, false)
 
 var gridData: Dictionary = {}
 
@@ -14,17 +15,11 @@ func updateGrid(gridSize:int, state: Array[Util.GridData]) -> void:
 		#print(item)
 		gridData[item.position.getIndex(gridSize)] = item.puck
 	
-func selectNextPosition(gridSize:int) -> Util.ReturnPosition:
-	var element = Util.ReturnPosition.new()
-	element.position = Util.Position.new()
-	for row in range(0, gridSize):
-		for column in range(0, gridSize):
-			element.valid = true
-			element.position.row = row
-			element.position.column = column
-			if (!gridData.has(element.position.getIndex(gridSize))):
-				return element
-	element.valid = false
-	return element 
-	
-	
+func selectNextPosition(validPositions:Dictionary, gridSize:int) -> Util.ReturnPosition:
+	if (validPositions.size()):
+		var validPositionIndex:int = randi() % validPositions.size()
+		var positionIndex:int = validPositions.keys()[validPositionIndex]
+		return Util.ReturnPosition.fromPosition(validPositions[positionIndex], true)
+	else:
+		return dummyPosition
+		

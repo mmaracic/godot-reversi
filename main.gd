@@ -10,12 +10,8 @@ var automatons:Dictionary = {}
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var playerWhite:Util.Player = Util.Player.new()
-	playerWhite.side = Util.PlayerSide.White
-	playerWhite.type = Util.PlayerType.Human
-	var playerBlack:Util.Player = Util.Player.new()
-	playerBlack.side = Util.PlayerSide.Black
-	playerBlack.type = Util.PlayerType.Automated
+	var playerWhite:Util.Player = Util.Player.create(Util.PlayerSide.White, Util.PlayerType.Human)
+	var playerBlack:Util.Player = Util.Player.create(Util.PlayerSide.Black, Util.PlayerType.Automated)
 	players = [playerWhite, playerBlack]
 	
 	for player in players:
@@ -30,6 +26,8 @@ func _process(delta: float) -> void:
 func reset() -> void:
 	var grid: Grid = get_node("Grid")
 	grid.reset(players)	
+	var ui:UI = get_node("UI")
+	ui.reset()
 
 
 func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]) -> void:
@@ -37,10 +35,12 @@ func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]
 	if (automatons.has(nextSide)):
 		var player:AutomatedPlayer = automatons[nextSide]
 		player.updateGrid(grid.size, gridState)
-		var position:Util.ReturnPosition = player.selectNextPosition(grid.size)
-		print("Automated player selected position: ", position)
-		if (position.valid):
+		var position:Util.ReturnPosition = player.selectNextPosition(grid.cloneMoveOptionsDictionary(), grid.size)
+		if (position.valid and grid.moveOptionsDictionary.has(position.position.getIndex(grid.size))):
 			grid.setElement(position.position.row, position.position.column, nextSide)
+		else:
+			print("Automated player has no positions to play")
+			grid.switchPlayer()
 	
 
 
