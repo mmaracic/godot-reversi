@@ -54,6 +54,17 @@ func getPuck() -> Util.Puck:
 	else:
 		return Util.Puck.None
 
+func flipPuck() -> bool:
+	var type: Util.Puck = self.getPuck()
+	match type:
+		Util.Puck.White:
+			self._setPuck(Util.Puck.Black)
+			return true
+		Util.Puck.Black:
+			self._setPuck(Util.Puck.White)
+			return true
+	return false
+
 func setPuckIfEmpty(puck: Util.Puck) -> bool:
 	if (isEmpty()):
 		_setPuck(puck)

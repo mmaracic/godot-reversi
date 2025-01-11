@@ -22,7 +22,7 @@ func _ready() -> void:
 			element.set3DPosition(Vector3(x, 0, z))
 			element.clicked.connect(setCurrentPuckToElement.bind(element))
 			add_child(element)
-			elementDictionary[_calculateIndex(z,x)] = element
+			elementDictionary[element.getPosition().getIndex(size)] = element
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -55,19 +55,19 @@ func getGridState() -> Array[Util.GridData]:
 	return state
 	
 	
-func cloneMoveOptionsDictionary() -> Dictionary:
+func _cloneAndFilterInvalidMoveOptionsDictionary(playerPuck:Util.Puck) -> Dictionary:
 	var newDictionary:Dictionary = {}
 	for key in moveOptionsDictionary.keys():
 		var position:Util.Position = moveOptionsDictionary[key]
-		newDictionary[key] = position.clone()
+		var gridElement:GridElement = elementDictionary[position.getIndex(size)]
+		var flippablePucks:int = _findFlippablePucks(gridElement, playerPuck)
+		if (flippablePucks>0):
+			newDictionary[key] = position.clone()
 	return newDictionary
 
-func _calculateIndex(row: int, column: int) -> int:
-	return row*size+column
-	
 #This is how automated player sets puck	
 func setElement(row: int, column: int, side: Util.PlayerSide) -> bool:
-	var index = _calculateIndex(row, column)
+	var index = Util.Position.create(row, column).getIndex(size)
 	var element: GridElement = elementDictionary.get(index)
 	var result: bool = _setPuckToElementIfTurnAndEmpty(element, side, Util.PlayerType.Automated)
 	return result
@@ -84,26 +84,38 @@ func setCurrentPuckToElement(element: GridElement) -> bool:
 #Common method to set puck for automated and manual players
 func _setPuckToElementIfTurnAndEmpty(element: GridElement, side: Util.PlayerSide, type: Util.PlayerType) -> bool:
 	if (!players.is_empty()):
-		var puckType:Util.Puck = Util.Puck.White if (side == Util.PlayerSide.White) else Util.Puck.Black
-		var player:Util.Player = players[playerIndex]
-		var playerCorrect:bool = player.side == side and player.type == type
-		if (playerCorrect):
-			var positionSet: bool = _setPuckToElementIfEmpty(element, puckType)
-			print("Player ", side, " of type ", type, " setting position: ", element.getPosition(), " on thread ", OS.get_thread_caller_id(), " success: ", positionSet)
-			#print("Open positions: ", moveOptionsDictionary)
-			if (positionSet):
-				switchPlayer()
-			return positionSet
+		var puckType:Util.Puck = Util.mapPlayerToPuck(side)
+		var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(puckType)
+		if (!availableMoves.is_empty()):
+			if (availableMoves.has(element.getPosition().getIndex(size))):
+				var player:Util.Player = players[playerIndex]
+				var playerCorrect:bool = player.side == side and player.type == type
+				if (playerCorrect):
+					var positionSet: bool = _setPuckToElementIfEmpty(element, puckType)
+					print("Player ", side, " of type ", type, " setting position: ", element.getPosition(), " on thread ", OS.get_thread_caller_id(), " success: ", positionSet)
+					if (positionSet):
+						switchPlayer()
+					return positionSet
+				else:
+					print("Player with side: ", side, " and type: ", type, " does not correspond to requested player: ", player)
+					return false
+			else:
+				print("Player with side: ", side, " and type: ", type, " has played an invalid position ", element.getPosition())
+				return false
 		else:
-			print("Player with side: ", side, " and type: ", type, " does not correspond to requested player: ", player)
+			print("There are no valid moves for player with side: ", side, " and type: ", type, " to play")
+			#switchPlayer()
 			return false
 	else:
+		print("No players available")
 		return false
 
 #Common method to set puck for automated and manual players without the checks
 func _setPuckToElementIfEmpty(element: GridElement, puckType:Util.Puck) -> bool:
 	var result = element.setPuckIfEmpty(puckType)
 	if (result):
+			var flippedPucks:int = _flipPucks(element, puckType)
+			#print("Flipped pucks: ", flippedPucks)
 			_unregistePositionAsMoveOption(element)
 			_registerValidNeighboursAsMoveOptions(element)
 	return result
@@ -127,9 +139,65 @@ func _unregistePositionAsMoveOption(element: GridElement) -> void:
 		var index:int = position.getIndex(size)
 		moveOptionsDictionary.erase(index)
 
+#Filp pucks that can be flipped in all directions
+#Because starting element may be empty sthe assumed starting puck is provided
+func _flipPucks(startGridElement:GridElement, startPuck:Util.Puck) -> int:
+	var directions = Util.PositionDelta.generate8NeighbourPositions()
+	var totalFlipped = 0
+	for direction:Util.PositionDelta in directions:
+		var flippedPucks:int=_flipPucksUntil(startGridElement, startPuck, direction)
+		totalFlipped+=flippedPucks
+	return totalFlipped
+
+#Flip pucks that can be flipped in the desired direction
+#Because starting element may be empty sthe assumed starting puck is provided	
+func _flipPucksUntil(startGridElement:GridElement, startPuck:Util.Puck, delta:Util.PositionDelta) -> int:
+	var distanceToUnflippablePuck:int = _findFlippablePucksUntil(startGridElement, startPuck, delta)
+	if (distanceToUnflippablePuck > 0):
+		var position = startGridElement.getPosition().getNeighbourPosition(delta)
+		for i:int in range(1, distanceToUnflippablePuck):
+			var gridElement:GridElement = elementDictionary[position.getIndex(size)]
+			gridElement.flipPuck()
+			position = position.getNeighbourPosition(delta)
+		return distanceToUnflippablePuck-1
+	else:
+		return distanceToUnflippablePuck
+
+#Find pucks that can be flipped in all directions
+#Because starting element may be empty sthe assumed starting puck is provided
+func _findFlippablePucks(startGridElement:GridElement, startPuck:Util.Puck) -> int:
+	var directions = Util.PositionDelta.generate8NeighbourPositions()
+	var totalFlippable = 0
+	for direction:Util.PositionDelta in directions:
+		var flippablePucks:int=_findFlippablePucksUntil(startGridElement, startPuck, direction)
+		#print("From position ", startGridElement.getPosition(), " in direction ", direction, " number of flippable pucks is ", flippablePucks)
+		#Flippable pucks includes end puck that belongs to current player
+		totalFlippable+= flippablePucks-1 if (flippablePucks>0) else 0
+	#print("From position ", startGridElement.getPosition(), " total flippable pucks is ", totalFlippable)
+	return totalFlippable
+
+#Find pucks that can be flipped in the desired direction, starting from current element that may be empty
+#Because starting element may be empty sthe assumed starting puck is provided
+#Count includes the position of last puck that shouldnt be flipped	
+func _findFlippablePucksUntil(startGridElement:GridElement, startPuck:Util.Puck, delta:Util.PositionDelta) -> int:
+	var nextPosition = startGridElement.getPosition().getNeighbourPosition(delta)
+	var count:int = 1
+	while(nextPosition.isValid(size)):
+		var gridElement:GridElement = elementDictionary[nextPosition.getIndex(size)]
+		var puck:Util.Puck = gridElement.getPuck()
+		if (puck == Util.Puck.None):
+			return 0
+		elif (puck == startPuck):
+			return 0 if (count <= 1) else count
+		nextPosition = nextPosition.getNeighbourPosition(delta)
+		count+=1
+	return 0
+
 func switchPlayer():
-	var nextSide = _nextPlayer()
-	move_done.emit(nextSide, getGridState())
+	var nextSide:Util.PlayerSide = _nextPlayer()
+	var nextPuck:Util.Puck = Util.mapPlayerToPuck(nextSide)
+	var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(nextPuck)
+	move_done.emit(nextSide, getGridState(), availableMoves)
 
 
 func _nextPlayer() -> Util.PlayerSide:

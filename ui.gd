@@ -23,7 +23,7 @@ func _setPlayer(side:Util.PlayerSide) -> void:
 
 
 
-func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]) -> void:
+func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData], availableMoves:Dictionary) -> void:
 	_setPlayer(nextSide)
 	print("UI next side", str(nextSide))
 

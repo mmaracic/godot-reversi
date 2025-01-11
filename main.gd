@@ -30,16 +30,20 @@ func reset() -> void:
 	ui.reset()
 
 
-func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]) -> void:
+func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData], availableMoves:Dictionary) -> void:
 	var grid: Grid = get_node("Grid")
 	if (automatons.has(nextSide)):
 		var player:AutomatedPlayer = automatons[nextSide]
 		player.updateGrid(grid.size, gridState)
-		var position:Util.ReturnPosition = player.selectNextPosition(grid.cloneMoveOptionsDictionary(), grid.size)
-		if (position.valid and grid.moveOptionsDictionary.has(position.position.getIndex(grid.size))):
-			grid.setElement(position.position.row, position.position.column, nextSide)
+		if (!availableMoves.is_empty()):
+			var position:Util.ReturnPosition = player.selectNextPosition(availableMoves, grid.size)
+			if (position.valid and grid.moveOptionsDictionary.has(position.position.getIndex(grid.size))):
+				grid.setElement(position.position.row, position.position.column, nextSide)
+			else:
+				print("Automated player has played an invalid position")
+				grid.switchPlayer()
 		else:
-			print("Automated player has no positions to play")
+			print("There are no valid positions for the automated player to play")
 			grid.switchPlayer()
 	
 
