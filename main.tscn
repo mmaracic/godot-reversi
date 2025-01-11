@@ -8,6 +8,7 @@
 script = ExtResource("1_v0dpq")
 
 [node name="Grid" parent="." instance=ExtResource("2_fae3n")]
+size = 4
 
 [node name="CameraPosition" type="Marker3D" parent="."]
 transform = Transform3D(-1, -8.74228e-08, -3.82137e-15, 0, -4.37114e-08, 1, -8.74228e-08, 1, 4.37114e-08, 4, 6, 4)
@@ -21,6 +22,7 @@ directional_shadow_max_distance = 1.0
 
 [node name="UI" parent="." instance=ExtResource("3_78ks1")]
 
+[connection signal="game_over" from="Grid" to="UI" method="_on_grid_game_over"]
 [connection signal="move_done" from="Grid" to="." method="_on_grid_move_done"]
 [connection signal="move_done" from="Grid" to="UI" method="_on_grid_move_done"]
 [connection signal="start_game" from="UI" to="." method="_on_ui_start_game"]

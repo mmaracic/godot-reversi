@@ -5,11 +5,14 @@ var Util = preload("util.gd")
 
 var players:Array[Util.Player]
 var playerIndex:int
+var numberOfBlockedPlayers:int
+var gameOver:bool
 
 @export var size:int = 8
 @export var gridElement: PackedScene
 
 signal move_done
+signal game_over
 
 var elementDictionary:Dictionary = {}
 var moveOptionsDictionary:Dictionary = {}
@@ -30,6 +33,8 @@ func _process(delta: float) -> void:
 	pass
 	
 func reset(players:Array[Util.Player]) -> void:
+	gameOver = false
+	numberOfBlockedPlayers = 0
 	if (!players.is_empty()):
 		self.players = players
 		playerIndex = 0
@@ -37,10 +42,14 @@ func reset(players:Array[Util.Player]) -> void:
 	for i in range(0, children.size()):
 		var child:GridElement = children[i]
 		child._setPuck(Util.Puck.None)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(3,3).getIndex(size)], Util.Puck.White)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(4,4).getIndex(size)], Util.Puck.White)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(4,3).getIndex(size)], Util.Puck.Black)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(3,4).getIndex(size)], Util.Puck.Black)
+	var center: int = size/2
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center-1,center-1).getIndex(size)], Util.Puck.White)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center,center).getIndex(size)], Util.Puck.White)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center,center-1).getIndex(size)], Util.Puck.Black)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center-1,center).getIndex(size)], Util.Puck.Black)
+
+func isGameOver() -> bool:
+	return gameOver
 
 func getGridState() -> Array[Util.GridData]:
 	var state:Array[Util.GridData] = []
@@ -83,31 +92,33 @@ func setCurrentPuckToElement(element: GridElement) -> bool:
 
 #Common method to set puck for automated and manual players
 func _setPuckToElementIfTurnAndEmpty(element: GridElement, side: Util.PlayerSide, type: Util.PlayerType) -> bool:
-	if (!players.is_empty()):
-		var puckType:Util.Puck = Util.mapPlayerToPuck(side)
-		var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(puckType)
-		if (!availableMoves.is_empty()):
-			if (availableMoves.has(element.getPosition().getIndex(size))):
-				var player:Util.Player = players[playerIndex]
-				var playerCorrect:bool = player.side == side and player.type == type
-				if (playerCorrect):
-					var positionSet: bool = _setPuckToElementIfEmpty(element, puckType)
-					print("Player ", side, " of type ", type, " setting position: ", element.getPosition(), " on thread ", OS.get_thread_caller_id(), " success: ", positionSet)
-					if (positionSet):
-						switchPlayer()
-					return positionSet
+	if (!gameOver):
+		if (!players.is_empty()):
+			var puckType:Util.Puck = Util.mapPlayerToPuck(side)
+			var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(puckType)
+			if (!availableMoves.is_empty()):
+				if (availableMoves.has(element.getPosition().getIndex(size))):
+					var player:Util.Player = players[playerIndex]
+					var playerCorrect:bool = player.side == side and player.type == type
+					if (playerCorrect):
+						var positionSet: bool = _setPuckToElementIfEmpty(element, puckType)
+						print("Player ", side, " of type ", type, " setting position: ", element.getPosition(), " on thread ", OS.get_thread_caller_id(), " success: ", positionSet)
+						switchPlayer(positionSet)
+						return positionSet
+					else:
+						print("Player with side: ", side, " and type: ", type, " does not correspond to requested player: ", player)
+						return false
 				else:
-					print("Player with side: ", side, " and type: ", type, " does not correspond to requested player: ", player)
+					print("Player with side: ", side, " and type: ", type, " has played an invalid position ", element.getPosition())
 					return false
 			else:
-				print("Player with side: ", side, " and type: ", type, " has played an invalid position ", element.getPosition())
+				print("There are no valid moves for player with side: ", side, " and type: ", type, " to play")
+				switchPlayer(false)
 				return false
 		else:
-			print("There are no valid moves for player with side: ", side, " and type: ", type, " to play")
-			#switchPlayer()
+			print("No players available")
 			return false
 	else:
-		print("No players available")
 		return false
 
 #Common method to set puck for automated and manual players without the checks
@@ -193,11 +204,20 @@ func _findFlippablePucksUntil(startGridElement:GridElement, startPuck:Util.Puck,
 		count+=1
 	return 0
 
-func switchPlayer():
+func switchPlayer(moveSuccessful:bool) -> void:
+	var gridState:Array[Util.GridData] = getGridState()
+	if (!moveSuccessful):
+		numberOfBlockedPlayers+=1
 	var nextSide:Util.PlayerSide = _nextPlayer()
+	if (nextSide == Util.PlayerSide.White):
+		if (numberOfBlockedPlayers == players.size()):
+			gameOver = true
+			game_over.emit()
+		else:
+			numberOfBlockedPlayers = 0
 	var nextPuck:Util.Puck = Util.mapPlayerToPuck(nextSide)
 	var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(nextPuck)
-	move_done.emit(nextSide, getGridState(), availableMoves)
+	move_done.emit(nextSide, gridState, availableMoves)		
 
 
 func _nextPlayer() -> Util.PlayerSide:

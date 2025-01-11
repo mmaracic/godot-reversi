@@ -32,7 +32,7 @@ func reset() -> void:
 
 func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData], availableMoves:Dictionary) -> void:
 	var grid: Grid = get_node("Grid")
-	if (automatons.has(nextSide)):
+	if (automatons.has(nextSide) and !grid.isGameOver()):
 		var player:AutomatedPlayer = automatons[nextSide]
 		player.updateGrid(grid.size, gridState)
 		if (!availableMoves.is_empty()):
@@ -41,10 +41,10 @@ func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]
 				grid.setElement(position.position.row, position.position.column, nextSide)
 			else:
 				print("Automated player has played an invalid position")
-				grid.switchPlayer()
+				grid.switchPlayer(false)
 		else:
 			print("There are no valid positions for the automated player to play")
-			grid.switchPlayer()
+			grid.switchPlayer(false)
 	
 
 

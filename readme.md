@@ -8,3 +8,7 @@ Reversi game created in Godot game engine
 * Statistic tracking on remote server
 * Remembering local statistics
 * Integration to Steam
+
+### Additional goals
+* Mark valid moves on the board by mutating models
+* Mark board positions/grid
