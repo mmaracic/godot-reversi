@@ -27,7 +27,7 @@ func get3DPosition() -> Vector3:
 
 func getPosition() -> Util.Position:
 	var vectorPosition:Vector3 = get3DPosition()
-	return Util.Position.create(roundi(vectorPosition.z), roundi(vectorPosition.x))
+	return Util.Position.new(roundi(vectorPosition.z), roundi(vectorPosition.x))
 	
 	
 func _setPuck(type: Util.Puck) -> void:

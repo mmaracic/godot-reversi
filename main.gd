@@ -10,13 +10,13 @@ var automatons:Dictionary = {}
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var playerWhite:Util.Player = Util.Player.create(Util.PlayerSide.White, Util.PlayerType.Human)
-	var playerBlack:Util.Player = Util.Player.create(Util.PlayerSide.Black, Util.PlayerType.Automated)
+	var playerWhite:Util.Player = Util.Player.new(Util.PlayerSide.White, Util.PlayerType.Human)
+	var playerBlack:Util.Player = Util.Player.new(Util.PlayerSide.Black, Util.PlayerType.Automated)
 	players = [playerWhite, playerBlack]
 	
 	for player in players:
 		if (player.type == Util.PlayerType.Automated):
-			automatons[player.side] = AutomatedPlayer.new()
+			automatons[player.side] = AutomatedPlayer.new(player.side)
 	reset()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -24,28 +24,21 @@ func _process(delta: float) -> void:
 	pass
 	
 func reset() -> void:
+	print("New game")
 	var grid: Grid = get_node("Grid")
 	grid.reset(players)	
 	var ui:UI = get_node("UI")
 	ui.reset()
 
 
-func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData], availableMoves:Dictionary) -> void:
+func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]) -> void:
+	var ui:UI = get_node("UI")
+	ui.processMove(nextSide, gridState)
+	
 	var grid: Grid = get_node("Grid")
 	if (automatons.has(nextSide) and !grid.isGameOver()):
 		var player:AutomatedPlayer = automatons[nextSide]
-		player.updateGrid(grid.size, gridState)
-		if (!availableMoves.is_empty()):
-			var position:Util.ReturnPosition = player.selectNextPosition(availableMoves, grid.size)
-			if (position.valid and grid.moveOptionsDictionary.has(position.position.getIndex(grid.size))):
-				grid.setElement(position.position.row, position.position.column, nextSide)
-			else:
-				print("Automated player has played an invalid position")
-				grid.switchPlayer(false)
-		else:
-			print("There are no valid positions for the automated player to play")
-			grid.switchPlayer(false)
-	
+		grid.processAutomatedPlayer(player, gridState)
 
 
 func _on_ui_start_game() -> void:

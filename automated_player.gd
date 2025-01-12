@@ -2,9 +2,14 @@ class_name AutomatedPlayer
 extends Object
 
 var Util = preload("util.gd")
-var dummyPosition = Util.ReturnPosition.create(0,0, false)
+var dummyPosition = Util.ReturnPosition.new(0,0, false)
+
+var side: Util.PlayerSide
 
 var gridData: Dictionary = {}
+
+func _init(side: Util.PlayerSide) -> void:
+	self.side = side
 
 	
 func updateGrid(gridSize:int, state: Array[Util.GridData]) -> void:

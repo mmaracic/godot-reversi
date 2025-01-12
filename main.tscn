@@ -24,5 +24,4 @@ directional_shadow_max_distance = 1.0
 
 [connection signal="game_over" from="Grid" to="UI" method="_on_grid_game_over"]
 [connection signal="move_done" from="Grid" to="." method="_on_grid_move_done"]
-[connection signal="move_done" from="Grid" to="UI" method="_on_grid_move_done"]
 [connection signal="start_game" from="UI" to="." method="_on_ui_start_game"]
