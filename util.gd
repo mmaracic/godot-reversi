@@ -8,14 +8,12 @@ class Player:
 	var side: PlayerSide
 	var type: PlayerType
 	
+	func _init(side: PlayerSide, type: PlayerType) -> void:
+		self.side = side
+		self.type = type
+
 	func _to_string() -> String:
 		return "Player side: " + str(side) + " type: " + str(type)
-	
-	static func create(side: PlayerSide, type: PlayerType) -> Player:
-		var player:Player = Player.new()
-		player.side = side
-		player.type = type
-		return player
 
 enum Puck {White, Black, None}
 
@@ -29,28 +27,33 @@ class PositionDelta:
 	func _to_string() -> String:
 		return "Delta row: " + str(deltaRow) + " Delta column: " + str(deltaColumn)
 		
-	static func create(deltaRow:int, deltaColumn:int) -> PositionDelta:
-		var delta = Util.PositionDelta.new()
-		delta.deltaRow = deltaRow
-		delta.deltaColumn = deltaColumn
-		return delta
+	func _init(deltaRow:int, deltaColumn:int) -> void:
+		self.deltaRow = deltaRow
+		self.deltaColumn = deltaColumn
 		
 	static func generate8NeighbourPositions() -> Array[Util.PositionDelta]:	
 		return [
-			PositionDelta.create(1, 1),
-			PositionDelta.create(1, -1),
-			PositionDelta.create(0, 1),
-			PositionDelta.create(0, -1),
-			PositionDelta.create(1, 0),
-			PositionDelta.create(-1, 1),
-			PositionDelta.create(-1, 0),
-			PositionDelta.create(-1, -1)
+			PositionDelta.new(1, 1),
+			PositionDelta.new(1, -1),
+			PositionDelta.new(0, 1),
+			PositionDelta.new(0, -1),
+			PositionDelta.new(1, 0),
+			PositionDelta.new(-1, 1),
+			PositionDelta.new(-1, 0),
+			PositionDelta.new(-1, -1)
 		]
 
 class Position:
 	var row:int
 	var column:int
 	
+	func _init(row:int, column:int) -> void:
+		self.row = row
+		self.column = column
+		
+	func _to_string() -> String:
+		return "Position Row: " + str(row) + " Column: " + str(column)
+		
 	func getIndex(gridSize:int) -> int:
 		return  row*gridSize+column
 
@@ -61,18 +64,14 @@ class Position:
 			return false
 
 	func clone() -> Position:
-		return Position.create(self.row, self.column)
+		return Position.new(self.row, self.column)
 	
-	func _to_string() -> String:
-		return "Position Row: " + str(row) + " Column: " + str(column)
-		
 	func equals(obj) -> bool:
 		if (!is_instance_of(obj, Position)):
 			return false
 		else:
 			return self.row == obj.row and self.column == obj.column
 	
-		
 	func generate8NeighbourPositions() -> Array[Util.Position]:
 		var deltas = PositionDelta.generate8NeighbourPositions()
 		return [
@@ -85,24 +84,17 @@ class Position:
 			self.getNeighbourPosition(deltas[6]),
 			self.getNeighbourPosition(deltas[7])
 		]
-
 	func getNeighbourPosition(delta:PositionDelta) -> Util.Position:
-		var position = Util.Position.new()
-		position.row = self.row + delta.deltaRow
-		position.column = self.column + delta.deltaColumn
-		return position
-		
-	static func create(row:int, column:int) -> Position:
-		var position = Util.Position.new()
-		position.row = row
-		position.column = column
-		return position
-		
+		return Util.Position.new(self.row + delta.deltaRow, self.column + delta.deltaColumn)
 
 
 class GridData:
 	var position:Position
 	var puck:Puck
+	
+	func _init(position:Position,  puck:Puck) -> void:
+		self.position = position
+		self.puck = puck
 	
 	func _to_string() -> String:
 		return position._to_string() + " Puck: " + str(puck)
@@ -111,19 +103,12 @@ class ReturnPosition:
 	var position:Position
 	var valid:bool
 	
-	
+	func _init(row:int, column:int, valid:bool) -> void:
+		self.position = Position.new(row, column)
+		self.valid = valid
+
 	func _to_string() -> String:
 		return position._to_string() + " Valid: " + str(valid)
 		
-	static func create(row:int, column:int, valid:bool) -> ReturnPosition:
-		var returnPosition = ReturnPosition.new()
-		returnPosition.position = Position.create(row, column)
-		returnPosition.valid = valid
-		return returnPosition
-
 	static func fromPosition(position:Position, valid:bool) -> ReturnPosition:
-		var returnPosition = ReturnPosition.new()
-		returnPosition.position = position
-		returnPosition.valid = valid
-		return returnPosition
-		
+		return ReturnPosition.new(position.row, position.column, valid)		

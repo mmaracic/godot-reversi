@@ -2,6 +2,7 @@ class_name Grid
 extends Node3D
 
 var Util = preload("util.gd")
+var AutomatedPlayer = preload("res://automated_player.gd")
 
 var players:Array[Util.Player]
 var playerIndex:int
@@ -43,10 +44,10 @@ func reset(players:Array[Util.Player]) -> void:
 		var child:GridElement = children[i]
 		child._setPuck(Util.Puck.None)
 	var center: int = size/2
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center-1,center-1).getIndex(size)], Util.Puck.White)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center,center).getIndex(size)], Util.Puck.White)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center,center-1).getIndex(size)], Util.Puck.Black)
-	_setPuckToElementIfEmpty(elementDictionary[Util.Position.create(center-1,center).getIndex(size)], Util.Puck.Black)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.new(center-1,center-1).getIndex(size)], Util.Puck.White)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.new(center,center).getIndex(size)], Util.Puck.White)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.new(center,center-1).getIndex(size)], Util.Puck.Black)
+	_setPuckToElementIfEmpty(elementDictionary[Util.Position.new(center-1,center).getIndex(size)], Util.Puck.Black)
 
 func isGameOver() -> bool:
 	return gameOver
@@ -57,9 +58,7 @@ func getGridState() -> Array[Util.GridData]:
 	for i in range(0, children.size()):
 		var child:GridElement = children[i]
 		if (child.getPuck() != Util.Puck.None):
-			var data = Util.GridData.new()
-			data.position = child.getPosition()
-			data.puck = child.getPuck()
+			var data = Util.GridData.new(child.getPosition(), child.getPuck())
 			state.append(data)
 	return state
 	
@@ -75,11 +74,25 @@ func _cloneAndFilterInvalidMoveOptionsDictionary(playerPuck:Util.Puck) -> Dictio
 	return newDictionary
 
 #This is how automated player sets puck	
-func setElement(row: int, column: int, side: Util.PlayerSide) -> bool:
-	var index = Util.Position.create(row, column).getIndex(size)
-	var element: GridElement = elementDictionary.get(index)
-	var result: bool = _setPuckToElementIfTurnAndEmpty(element, side, Util.PlayerType.Automated)
-	return result
+func processAutomatedPlayer(player:AutomatedPlayer, gridState:Array[Util.GridData]) -> bool:
+	player.updateGrid(size, gridState)
+	var puckType:Util.Puck = Util.mapPlayerToPuck(player.side)
+	var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(puckType)
+	if (!availableMoves.is_empty()):
+		var position:Util.ReturnPosition = player.selectNextPosition(availableMoves, size)
+		var positionIndex:int = position.position.getIndex(size)
+		if (position.valid and availableMoves.has(positionIndex)):
+			var element: GridElement = elementDictionary.get(positionIndex)
+			var result: bool = _setPuckToElementIfTurnAndEmpty(element, player.side, Util.PlayerType.Automated)
+			return result
+		else:
+			print("Automated player has played an invalid position")
+			switchPlayer(false)
+			return false
+	else:
+		print("There are no valid positions for the automated player to play")
+		switchPlayer(false)
+		return false
 
 #This is how human player sets puck
 func setCurrentPuckToElement(element: GridElement) -> bool:
@@ -215,9 +228,7 @@ func switchPlayer(moveSuccessful:bool) -> void:
 			game_over.emit()
 		else:
 			numberOfBlockedPlayers = 0
-	var nextPuck:Util.Puck = Util.mapPlayerToPuck(nextSide)
-	var availableMoves:Dictionary = _cloneAndFilterInvalidMoveOptionsDictionary(nextPuck)
-	move_done.emit(nextSide, gridState, availableMoves)		
+	move_done.emit(nextSide, gridState)		
 
 
 func _nextPlayer() -> Util.PlayerSide:

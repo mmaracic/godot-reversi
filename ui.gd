@@ -18,7 +18,12 @@ func reset() -> void:
 	_setPlayer(Util.PlayerSide.White)
 	_setGameOver(false)
 	_setCount(2,2)
-	
+
+func processMove(nextSide:Util.PlayerSide, gridState:Array[Util.GridData]) -> void:
+	_setPlayer(nextSide)
+	_calculateCounts(gridState)
+
+
 func _setPlayer(side:Util.PlayerSide) -> void:
 	var player:Label = get_node("Player") 
 	player.text = "Player: " + str(side)
@@ -42,12 +47,6 @@ func _calculateCounts(gridState:Array[Util.GridData]) -> void:
 			Util.Puck.Black:
 				black+=1
 	_setCount(white, black)
-
-func _on_grid_move_done(nextSide:Util.PlayerSide, gridState:Array[Util.GridData], availableMoves:Dictionary) -> void:
-	_setPlayer(nextSide)
-	print("UI next side", str(nextSide))
-	_calculateCounts(gridState)
-
 
 func _on_start_button_down() -> void:
 	start_game.emit()
